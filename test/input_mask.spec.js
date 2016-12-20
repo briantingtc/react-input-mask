@@ -8,17 +8,17 @@ import chai from 'chai'
 const container = document.getElementById('root');;
 
 function createInput(component, cb) {
-    return (done) => {
-        ReactDOM.unmountComponentAtNode(container);
-        var input = ReactDOM.render(component, container);
+  return (done) => {
+    ReactDOM.unmountComponentAtNode(container)
+    const input = ReactDOM.render(component, container)
 
-        // IE can fail if executed synchronously
-        setImmediate(() => {
-            cb(input);
-            done();
-        });
-    };
-};
+    // IE can fail if executed synchronously
+    setImmediate(() => {
+      cb(input)
+      done()
+    })
+  }
+}
 
 describe('Input', () => {
     it('Init format', createInput(
