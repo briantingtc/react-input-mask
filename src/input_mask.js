@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { maskInput } from './helpers.js'
-
+import { createInputMaskController } from './class.js'
 export class InputMask extends React.Component {
   constructor(props, context){
     super(props, context)
@@ -15,6 +15,7 @@ export class InputMask extends React.Component {
         return props.definitions[c] ? props.placeholder : c;
       }
     })
+    console.log(this.buffer)
 
     this.state = {
       rawInput: '',
@@ -22,6 +23,9 @@ export class InputMask extends React.Component {
       value: props.value,
     }
 
+  }
+  componentDidMount(){
+    this.input_mask_controller = createInputMaskController(this.props)(this.inputEl)
   }
 
   setInputElement(el){ this.inputEl = el }
@@ -181,8 +185,7 @@ export class InputMask extends React.Component {
   }
 
   writeBuffer(test){
-    console.log(test)
-    const callback = () => {console.log('being called',test);this.setCaret(test)}
+    const callback = () => {console.log('writing to buffer',test);this.setCaret(test)}
     this.setState({value: this.buffer.join('')}, callback)
 
   }
@@ -252,14 +255,12 @@ export class InputMask extends React.Component {
       console.log('settingSelectionRange now')
       this.inputEl.setSelectionRange(2,2)
     }
-    // partialPosition = len = this.props.mask.length;
+
     return React.createElement('input', {
       ref: this.setInputElement.bind(this),
       value: this.state.value,
-      // onChange: this.onChange,
       onFocus: this.onFocus.bind(this),
       onBlur: this.onBlur.bind(this),
-      // onKeyPress: this.onKeyPress.bind(this),
       onKeyPress: this.keypressEvent.bind(this),
       onKeyDown: this.keydownEvent.bind(this),
     })

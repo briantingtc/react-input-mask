@@ -19,129 +19,71 @@ export function maskInput (value, mask, tests){
   return result.join('')
 }
 
-export function keypressEvent(e) {
-  var k = e.which,
-    pos = setCaret.call(event.target),
-    p,
-    c,
-    next;
+export function buildInfoFromOptions(mask, definitions, placeholder){
+  let MASK_LENGTH = mask.length,
+      PARTIAL_POSITION = null,
+      FIRST_NON_MASK_POSITION = null,
+      maskArray = mask.split(''),
+      tests = [],
+      buffer = [],
 
-  if (e.ctrlKey || e.altKey || e.metaKey || k < 32) {
-    return
+  maskArray.forEach((char, index) => {
+    if (char == '?') {
+      MASK_LENGTH--
+      PARTIAL_POSITION = index
 
-  } else if (k) {
-    if (pos.end - pos.begin !== 0){
-      clearBuffer(pos.begin, pos.end);
-      shiftL(pos.begin, pos.end-1);
-    }
+    } else if (definitions[char]) {
+      tests.push(new RegExp(definitions[char]))
 
-    p = seekNext(pos.begin - 1);
-    if (p < len) {
-      c = String.fromCharCode(k);
-      if (tests[p].test(c)) {
-        shiftR(p);
-
-        buffer[p] = c;
-        writeBuffer();
-        next = seekNext(p);
-
-        if(android){
-          setTimeout($.proxy($.fn.caret,input,next),0);
-        }else{
-          input.caret(next);
-        }
-
-        if (settings.completed && next >= len) {
-          settings.completed.call(input);
-        }
+      if (FIRST_NON_MASK_POSITION === null) {
+        FIRST_NON_MASK_POSITION = tests.length - 1;
+        console.log('being hit', FIRST_NON_MASK_POSITION)
       }
+    } else {
+      tests.push(null)
     }
-    e.preventDefault();
-  }
-}
+  })
 
-export function setCaret(begin, end) {
-  var range;
-
-  if (this.length === 0) {
-    return
-  }
-  //
-  if (typeof begin == 'number') {
-    end = (typeof end === 'number') ? end : begin;
-    if (this.setSelectionRange) {
-      this.setSelectionRange(begin, end);
-    } else if (this.createTextRange) {
-      range = this.createTextRange();
-      range.collapse(true);
-      range.moveEnd('character', end);
-      range.moveStart('character', begin);
-      range.select();
+  buffer = maskArray.map( (char, i) => {
+    if (char != '?') {
+      return definitions[char] ? placeholder : char;
     }
-  } else {
-    if (this.setSelectionRange) {
-      begin = this.selectionStart;
-      end = this.selectionEnd;
-    } else if (document.selection && document.selection.createRange) {
-      range = document.selection.createRange();
-      begin = 0 - range.duplicate().moveStart('character', -100000);
-      end = begin + range.text.length;
-    }
-    return { begin, end }
+  })
+
+  return {
+    MASK_LENGTH,
+    PARTIAL_POSITION,
+    FIRST_NON_MASK_POSITION,
+    tests,
+    buffer
   }
 }
 
-
-function seekNext(pos) {
-  while (++pos < len && !tests[pos]);
-  return pos;
-}
-
-function seekPrev(pos) {
-  while (--pos >= 0 && !tests[pos]);
-  return pos;
-}
-
-function shiftL(begin,end) {
-  var i,
-    j;
-
-  if (begin<0) {
-    return;
-  }
-
-  for (i = begin, j = seekNext(end); i < len; i++) {
-    if (tests[i]) {
-      if (j < len && tests[i].test(buffer[j])) {
-        buffer[i] = buffer[j];
-        buffer[j] = settings.placeholder;
-      } else {
-        break;
+export function setCaret(inputEl) {
+  return function (begin, end) {
+    console.log('setting caret', begin, end)
+    let range,
+    if (typeof begin == 'number') {
+      end = (typeof end === 'number') ? end : begin;
+      if (inputEl.setSelectionRange) {
+        inputEl.setSelectionRange(begin, end);
+      } else if (inputEl.createTextRange) {
+        range = inputEl.createTextRange();
+        range.collapse(true);
+        range.moveEnd('character', end);
+        range.moveStart('character', begin);
+        range.select();
       }
-
-      j = seekNext(j);
-    }
-  }
-  writeBuffer();
-  input.caret(Math.max(firstNonMaskPos, begin));
-}
-
-function shiftR(pos) {
-  var i,
-    c,
-    j,
-    t;
-
-  for (i = pos, c = settings.placeholder; i < len; i++) {
-    if (tests[i]) {
-      j = seekNext(i);
-      t = buffer[i];
-      buffer[i] = c;
-      if (j < len && tests[j].test(t)) {
-        c = t;
-      } else {
-        break;
+    } else {
+      if (inputEl.setSelectionRange) {
+        begin = inputEl.selectionStart;
+        end = inputEl.selectionEnd;
+      } else if (document.selection && document.selection.createRange) {
+        range = document.selection.createRange();
+        begin = 0 - range.duplicate().moveStart('character', -100000);
+        end = begin + range.text.length;
       }
+      return { begin, end }
     }
   }
 }
