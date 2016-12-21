@@ -8,6 +8,7 @@ export class InputMask extends React.Component {
 
     this.MASK_LENGTH = null
     this.PARTIAL_POSITION = null
+    this.FIRST_NON_MASK_POSITION = null
     this.buildTestsFromMask(props.mask, props.definitions)
     this.buffer = props.mask.split('').map( (c, i) => {
       if (c != '?') {
@@ -37,8 +38,9 @@ export class InputMask extends React.Component {
       } else if (definitions[char]) {
         tests.push(new RegExp(definitions[char]))
 
-        if (this.firstNonMaskPos === null) {
-          this.firstNonMaskPos = tests.length - 1;
+        if (this.FIRST_NON_MASK_POSITION === null) {
+          this.FIRST_NON_MASK_POSITION = tests.length - 1;
+          console.log('being hit', this.FIRST_NON_MASK_POSITION)
         }
 
       } else {
@@ -117,6 +119,33 @@ export class InputMask extends React.Component {
     }
   }
 
+  keydownEvent(e) {
+    var k = e.which,
+      pos,
+      begin,
+      end;
+
+    //backspace, delete, and escape get special treatment
+    if (k === 8 || k === 46 || ( k === 127)) {
+    // if (k === 8 || k === 46 || (iPhone && k === 127)) {
+      pos = this.setCaret();
+      begin = pos.begin;
+      end = pos.end;
+
+      if (end - begin === 0) {
+        begin=k!==46? this.seekPrev(begin) : (end=this.seekNext(begin-1));
+        end=k===46? this.seekNext(end) : end;
+      }
+      this.clearBuffer(begin, end);
+      this.shiftL(begin, end - 1);
+
+      e.preventDefault();
+    } else if (k == 27) {//escape
+      // input.val(focusText);
+      // input.caret(0, this.checkVal());
+      e.preventDefault();
+    }
+  }
 
   seekNext(pos) {
     while (++pos < this.MASK_LENGTH && !this.tests[pos]);
@@ -136,10 +165,10 @@ export class InputMask extends React.Component {
     }
 
     for(i = begin, j = this.seekNext(end); i < this.MASK_LENGTH; i++) {
-      if (tests[i]) {
+      if (this.tests[i]) {
         if (j < this.MASK_LENGTH && this.tests[i].test(this.buffer[j])) {
           this.buffer[i] = this.buffer[j];
-          this.buffer[j] = props.placeholder;
+          this.buffer[j] = this.props.placeholder;
         } else {
           break;
         }
@@ -147,10 +176,8 @@ export class InputMask extends React.Component {
         j = this.seekNext(j);
       }
     }
-    console.log('this is writing', Math.max(this.firstNonMaskPos, begin))
-    this.writeBuffer(Math.max(this.firstNonMaskPos, begin));
-    console.log('setting carert from SHIFTL')
-    // this.setCaret(Math.max(this.firstNonMaskPos, begin))
+
+    this.writeBuffer(Math.max(this.FIRST_NON_MASK_POSITION, begin));
   }
 
   writeBuffer(test){
@@ -234,7 +261,7 @@ export class InputMask extends React.Component {
       onBlur: this.onBlur.bind(this),
       // onKeyPress: this.onKeyPress.bind(this),
       onKeyPress: this.keypressEvent.bind(this),
-      onKeyDown: this.onKeyDown.bind(this),
+      onKeyDown: this.keydownEvent.bind(this),
     })
   }
 }
