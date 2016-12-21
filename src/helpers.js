@@ -16,7 +16,6 @@ export function buildInfoFromOptions(mask, definitions, placeholder){
 
       if (FIRST_NON_MASK_POSITION === null) {
         FIRST_NON_MASK_POSITION = tests.length - 1;
-        console.log('being hit', FIRST_NON_MASK_POSITION)
       }
     } else {
       tests.push(null)
@@ -40,8 +39,6 @@ export function buildInfoFromOptions(mask, definitions, placeholder){
 
 export function setCaret(inputEl) {
   return function (begin, end) {
-    console.log('setting caret', begin, end)
-
     if (typeof begin == 'number') {
       end = (typeof end === 'number') ? end : begin;
 

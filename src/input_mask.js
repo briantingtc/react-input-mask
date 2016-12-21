@@ -7,34 +7,40 @@ export class InputMask extends React.Component {
   constructor(props, context){
     super(props, context)
 
-    this.state = {
-      value: props.value,
-    }
-
+    this.state = { value: props.value }
   }
+
   componentDidMount(){
+    window.setCaret = setCaret
     this.input_mask_controller = createInputMaskController(this.props)(this.inputEl)
   }
 
   setInputElement(el){ this.inputEl = el }
 
   onKeyPress(e){
-    console.log(this.input_mask_controller.parseKeyPressEvent(e.nativeEvent))
+    console.log('keypress')
+    // e.preventDefault()
     const result = this.input_mask_controller.parseKeyPressEvent(e.nativeEvent)
-    const callback = () => setCaret(this.inputEl)(2,2)
-    result ? this.setState({value: result.value}, callback) : null
 
+    if (result) {
+      this.setState({value: result.value}, result.callback)
+    }
   }
 
   onKeyDown(e){
-    // const result = this.input_mask_controller.parseKeyDownEvent(e.nativeEvent)
-    // this.setState({value: result.value}, result.callback)
+    console.log('onkeydown')
+    // e.preventDefault()
+    const result = this.input_mask_controller.parseKeyDownEvent(e.nativeEvent)
+    if (result) {
+      this.setState({value: result.value},result.callback)
+    }
   }
 
   render(){
     return React.createElement('input', {
       ref: this.setInputElement.bind(this),
       value: this.state.value,
+      // onChange(e){console.log('onchange')},
       // onFocus: this.onFocus.bind(this),
       // onBlur: this.onBlur.bind(this),
       onKeyPress: this.onKeyPress.bind(this),

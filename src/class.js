@@ -37,12 +37,12 @@ export function createInputMaskController(options){
           next;
 
         if (e.ctrlKey || e.altKey || e.metaKey || keyCode < 32) {
+          e.preventDefault();
           return
-
         } else if (keyCode) {
           if (pos.end - pos.begin !== 0){
             this.clearBuffer(pos.begin, pos.end);
-            this.shiftL(pos.begin, pos.end-1);
+            return this.shiftL(pos.begin, pos.end-1);
           }
 
           nextPos = this.seekNext(pos.begin - 1);
@@ -50,15 +50,16 @@ export function createInputMaskController(options){
             charStr = String.fromCharCode(keyCode);
 
             if (TESTS[nextPos].test(charStr)) {
+              console.log('hitting this')
               this.shiftR(nextPos);
               this.buffer[nextPos] = charStr;
               next = this.seekNext(nextPos);
-              return this.writeBuffer(next);
 
+              e.preventDefault();
+              return this.writeBuffer(next);
               // if(android){
               //   // setTimeout($.proxy($.fn.caret,input,next),0);
               // }else{
-              console.log('setting carert from keypressEvent if test matches')
               // setCaret(inputEl)(next);
               // }
               // if (settings.completed && next >= len) {
@@ -78,6 +79,7 @@ export function createInputMaskController(options){
 
         //backspace, delete, and escape get special treatment
         if (k === 8 || k === 46 || ( k === 127)) {
+          e.preventDefault();
         // if (k === 8 || k === 46 || (iPhone && k === 127)) {
           pos = setCaret(inputEl)();
           begin = pos.begin;
@@ -87,14 +89,16 @@ export function createInputMaskController(options){
             begin=k!==46? this.seekPrev(begin) : (end=this.seekNext(begin-1));
             end=k===46? this.seekNext(end) : end;
           }
-          this.clearBuffer(begin, end);
-          this.shiftL(begin, end - 1);
 
-          e.preventDefault();
+          this.clearBuffer(begin, end);
+          return this.shiftL(begin, end - 1);
+
         } else if (k == 27) {//escape
           // input.val(focusText);
           // input.caret(0, this.checkVal());
           e.preventDefault();
+        } else {
+          return null
         }
       }
 
@@ -121,7 +125,7 @@ export function createInputMaskController(options){
         }
 
         for(i = begin, j = this.seekNext(end); i < MASK_LENGTH; i++) {
-          if (tests[i]) {
+          if (TESTS[i]) {
             if (j < MASK_LENGTH && TESTS[i].test(this.buffer[j])) {
               this.buffer[i] = this.buffer[j];
               this.buffer[j] = PLACEHOLDER;
@@ -137,7 +141,7 @@ export function createInputMaskController(options){
       }
 
       writeBuffer(position){
-        console.log(position)
+        console.log('writingbuffer', position)
         return {
           value: this.buffer.join(''),
           callback: () => {
@@ -148,16 +152,16 @@ export function createInputMaskController(options){
 
       shiftR(pos) {
         const { PLACEHOLDER, MASK_LENGTH, TESTS } = this
-        let j,
-          t;
+        let nextPosition,
+          bufferChar;
 
-        for (let i = pos, c = PLACEHOLDER; i < MASK_LENGTH; i++) {
+        for (let i = pos, placeholder = PLACEHOLDER; i < MASK_LENGTH; i++) {
           if (TESTS[i]) {
-            j = this.seekNext(i);
-            t = this.buffer[i];
-            this.buffer[i] = c;
-            if (j < MASK_LENGTH && TESTS[j].test(t)) {
-              c = t;
+            nextPosition = this.seekNext(i);
+            bufferChar = this.buffer[i];
+            this.buffer[i] = placeholder;
+            if (nextPosition < MASK_LENGTH && TESTS[nextPosition].test(bufferChar)) {
+              placeholder = bufferChar;
             } else {
               break;
             }
@@ -174,6 +178,53 @@ export function createInputMaskController(options){
           }
         }
       }
+
+      checkVal(allow) {
+        //try to place characters where they belong
+        const {
+          PLACEHOLDER,
+          MASK_LENGTH,
+          TESTS,
+          PARTIAL_POSITION,
+          FIRST_NON_MASK_POSITION
+        } = this
+
+        let inputValue = inputEl.val(),
+          lastMatch = -1,
+          index,
+          char;
+
+        for (let index = 0, pos = 0; index < MASK_LENGTH; index++) {
+          if (TESTS[index]) {
+            buffer[index] = PLACEHOLDER;
+            while (pos++ < inputValue.length) {
+              char = inputValue.charAt(pos - 1);
+              if (TESTS[index].test(char)) {
+                buffer[index] = char;
+                lastMatch = index;
+                break;
+              }
+            }
+            if (pos > inputValue.length) {
+              break;
+            }
+          } else if (buffer[index] === inputValue.charAt(pos) && index !== PARTIAL_POSITION) {
+            pos++;
+            lastMatch = index;
+          }
+        }
+        if (allow) {
+          writeBuffer();
+        } else if (lastMatch + 1 < PARTIAL_POSITION) {
+          input.val("");
+          clearBuffer(0, MASK_LENGTH);
+        } else {
+          writeBuffer();
+          input.val(input.val().substring(0, lastMatch + 1));
+        }
+        return (PARTIAL_POSITION ? index : FIRST_NON_MASK_POSITION);
+      }
+
     }
 
     return new InputMaskController(options)
