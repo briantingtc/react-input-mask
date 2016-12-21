@@ -2,7 +2,6 @@ import { buildInfoFromOptions, setCaret } from './helpers.js'
 
 export function createInputMaskController(options){
   return function (inputEl){
-
     class InputMaskController {
       constructor({
         mask,
@@ -30,10 +29,11 @@ export function createInputMaskController(options){
       }
 
       parseKeyPressEvent(e) {
+        const { MASK_LENGTH, TESTS } = this
         let keyCode = e.which,
           pos = setCaret(inputEl)(),
-          p,
-          c,
+          nextPos,
+          charStr,
           next;
 
         if (e.ctrlKey || e.altKey || e.metaKey || keyCode < 32) {
@@ -45,21 +45,21 @@ export function createInputMaskController(options){
             this.shiftL(pos.begin, pos.end-1);
           }
 
-          p = this.seekNext(pos.begin - 1);
-          if (p < this.MASK_LENGTH) {
-            c = String.fromCharCode(keyCode);
+          nextPos = this.seekNext(pos.begin - 1);
+          if (nextPos < MASK_LENGTH) {
+            charStr = String.fromCharCode(keyCode);
 
-            if (this.TESTS[p].test(c)) {
-              this.shiftR(p);
-              this.buffer[p] = c;
-              next = this.seekNext(p);
-              this.writeBuffer(next);
+            if (TESTS[nextPos].test(charStr)) {
+              this.shiftR(nextPos);
+              this.buffer[nextPos] = charStr;
+              next = this.seekNext(nextPos);
+              return this.writeBuffer(next);
 
               // if(android){
               //   // setTimeout($.proxy($.fn.caret,input,next),0);
               // }else{
               console.log('setting carert from keypressEvent if test matches')
-              setCaret(inputEl)(next);
+              // setCaret(inputEl)(next);
               // }
               // if (settings.completed && next >= len) {
               //   settings.completed.call(input);
@@ -113,7 +113,7 @@ export function createInputMaskController(options){
       }
 
       shiftL(begin,end) {
-        const { TESTS, MASK_LENGTH, PLACEHOLDER } = this
+        const { TESTS, MASK_LENGTH, PLACEHOLDER, FIRST_NON_MASK_POSITION } = this
         let i, j;
 
         if (begin < 0) {
@@ -133,22 +133,25 @@ export function createInputMaskController(options){
           }
         }
 
-        this.writeBuffer(Math.max(this.FIRST_NON_MASK_POSITION, begin));
+        return this.writeBuffer(Math.max(FIRST_NON_MASK_POSITION, begin));
       }
 
       writeBuffer(position){
-        setCaret(inputEl)(position)
-
-        const callback = () => {console.log('writing to buffer',test);this.setCaret(test)}
-        this.setState({value: this.buffer.join('')}, callback)
-
+        console.log(position)
+        return {
+          value: this.buffer.join(''),
+          callback: () => {
+            console.log('being called')
+            setCaret(inputEl)(position)},
+        }
       }
+
       shiftR(pos) {
         const { PLACEHOLDER, MASK_LENGTH, TESTS } = this
         let j,
           t;
 
-        for (let i = pos, let c = PLACEHOLDER; i < MASK_LENGTH; i++) {
+        for (let i = pos, c = PLACEHOLDER; i < MASK_LENGTH; i++) {
           if (TESTS[i]) {
             j = this.seekNext(i);
             t = this.buffer[i];
