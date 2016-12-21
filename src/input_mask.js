@@ -15,7 +15,6 @@ export class InputMask extends React.Component {
         return props.definitions[c] ? props.placeholder : c;
       }
     })
-    console.log(this.buffer)
 
     this.state = {
       rawInput: '',
@@ -23,9 +22,6 @@ export class InputMask extends React.Component {
       value: props.value,
     }
 
-  }
-  componentDidMount(){
-    this.input_mask_controller = createInputMaskController(this.props)(this.inputEl)
   }
 
   setInputElement(el){ this.inputEl = el }
@@ -53,22 +49,6 @@ export class InputMask extends React.Component {
     })
 
     this.tests = tests
-  }
-
-  onKeyPress(e){
-    const lastChar = String.fromCharCode(e.which)
-    // console.log(e.which,this.state.value.concat(lastChar))
-    this.setState({
-      value: this.state.value.concat(lastChar),
-    })
-    // window.test = e
-  }
-
-  onKeyDown(e){
-    const lastChar = String.fromCharCode(e.which)
-    if (e.which === 8) {
-      this.setState({value: this.state.value.slice(0,-1)})
-    }
   }
 
   onFocus(e){
@@ -111,7 +91,7 @@ export class InputMask extends React.Component {
           // }else{
           console.log('setting carert from keypressEvent if test matches')
 
-          this.setCaret(next);
+          // this.setCaret(next);
           // }
 
           // if (settings.completed && next >= len) {
@@ -187,7 +167,6 @@ export class InputMask extends React.Component {
   writeBuffer(test){
     const callback = () => {console.log('writing to buffer',test);this.setCaret(test)}
     this.setState({value: this.buffer.join('')}, callback)
-
   }
   shiftR(pos) {
     var i,

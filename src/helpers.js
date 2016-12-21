@@ -25,7 +25,7 @@ export function buildInfoFromOptions(mask, definitions, placeholder){
       FIRST_NON_MASK_POSITION = null,
       maskArray = mask.split(''),
       tests = [],
-      buffer = [],
+      buffer = []
 
   maskArray.forEach((char, index) => {
     if (char == '?') {
@@ -62,7 +62,7 @@ export function buildInfoFromOptions(mask, definitions, placeholder){
 export function setCaret(inputEl) {
   return function (begin, end) {
     console.log('setting caret', begin, end)
-    let range,
+    let range;
     if (typeof begin == 'number') {
       end = (typeof end === 'number') ? end : begin;
       if (inputEl.setSelectionRange) {
