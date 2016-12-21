@@ -2,8 +2,8 @@ export function buildInfoFromOptions(mask, definitions, placeholder){
   let MASK_LENGTH = mask.length,
       PARTIAL_POSITION = null,
       FIRST_NON_MASK_POSITION = null,
+      TESTS = [],
       maskArray = mask.split(''),
-      tests = [],
       buffer = [];
 
   maskArray.forEach((char, index) => {
@@ -12,13 +12,13 @@ export function buildInfoFromOptions(mask, definitions, placeholder){
       PARTIAL_POSITION = index
 
     } else if (definitions[char]) {
-      tests.push(new RegExp(definitions[char]))
+      TESTS.push(new RegExp(definitions[char]))
 
       if (FIRST_NON_MASK_POSITION === null) {
         FIRST_NON_MASK_POSITION = tests.length - 1;
       }
     } else {
-      tests.push(null)
+      TESTS.push(null)
     }
   })
 
@@ -32,7 +32,7 @@ export function buildInfoFromOptions(mask, definitions, placeholder){
     MASK_LENGTH,
     PARTIAL_POSITION,
     FIRST_NON_MASK_POSITION,
-    tests,
+    TESTS,
     buffer
   }
 }

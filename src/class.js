@@ -17,8 +17,8 @@ export function createInputMaskController(options){
         this.PARTIAL_POSITION = app_variables.PARTIAL_POSITION
         this.FIRST_NON_MASK_POSITION = app_variables.FIRST_NON_MASK_POSITION
         this.PLACEHOLDER = placeholder
-        // regex checks that wont be mutated
-        this.TESTS = app_variables.tests
+        // array of regex for checking string that wont be mutated
+        this.TESTS = app_variables.TESTS
 
 
         // buffer array to insert placeholder characters
@@ -218,12 +218,11 @@ export function createInputMaskController(options){
           inputEl.value = "";
           return this.clearBuffer(0, MASK_LENGTH);
         } else {
-          return this.writeBuffer();
           inputEl.value = inputEl.value.substring(0, lastMatch + 1);
+          return this.writeBuffer();
         }
         return (PARTIAL_POSITION ? index : FIRST_NON_MASK_POSITION);
       }
-
     }
 
     return new InputMaskController(options)

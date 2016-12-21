@@ -34,6 +34,7 @@ export class InputMask extends React.Component {
 
   onBlur(e){
     const result = this.input_mask_controller.checkVal()
+    console.log(result)
     if (result) {
       this.setState({value: result.value})
     }
@@ -43,7 +44,6 @@ export class InputMask extends React.Component {
     return React.createElement('input', {
       ref: this.setInputElement.bind(this),
       value: this.state.value,
-      // onChange(e){console.log('onchange')},
       // onFocus: this.onFocus.bind(this),
       onBlur: this.onBlur.bind(this),
       onKeyPress: this.onKeyPress.bind(this),
