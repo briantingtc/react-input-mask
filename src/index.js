@@ -17,7 +17,7 @@ const App = () => (
       <h1>
         TestMask
       </h1>
-      <InputMask mask={'(999) 999-9999? x99999'}/>
+      <InputMask mask={'(999) 999-9999?  x99999'}/>
     </div>
     <div style={{
       margin:'25px'
