@@ -11,15 +11,12 @@ export class InputMask extends React.Component {
   }
 
   componentDidMount(){
-    window.setCaret = setCaret
     this.input_mask_controller = createInputMaskController(this.props)(this.inputEl)
   }
 
   setInputElement(el){ this.inputEl = el }
 
   onKeyPress(e){
-    console.log('keypress')
-    // e.preventDefault()
     const result = this.input_mask_controller.parseKeyPressEvent(e.nativeEvent)
 
     if (result) {
@@ -28,11 +25,17 @@ export class InputMask extends React.Component {
   }
 
   onKeyDown(e){
-    console.log('onkeydown')
-    // e.preventDefault()
     const result = this.input_mask_controller.parseKeyDownEvent(e.nativeEvent)
+
     if (result) {
-      this.setState({value: result.value},result.callback)
+      this.setState({value: result.value}, result.callback)
+    }
+  }
+
+  onBlur(e){
+    const result = this.input_mask_controller.checkVal()
+    if (result) {
+      this.setState({value: result.value})
     }
   }
 
@@ -42,7 +45,7 @@ export class InputMask extends React.Component {
       value: this.state.value,
       // onChange(e){console.log('onchange')},
       // onFocus: this.onFocus.bind(this),
-      // onBlur: this.onBlur.bind(this),
+      onBlur: this.onBlur.bind(this),
       onKeyPress: this.onKeyPress.bind(this),
       onKeyDown: this.onKeyDown.bind(this),
     })
@@ -55,7 +58,6 @@ InputMask.defaultProps = {
       'a': "[A-Za-z]",
       '*': "[A-Za-z0-9]"
   },
-  dataName: "rawMaskFn",
   placeholder: '_',
   value: '',
 }
